@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react'
-import { updatesUrl } from './api'
+import { api, updatesUrl } from './api'
 import { ReferencesPage } from './pages/ReferencesPage'
 import { SpecialPage } from './pages/SpecialPage'
 import { TicketsPage } from './pages/TicketsPage'
 import { VisualizationPage } from './pages/VisualizationPage'
+import { ImportsPage } from './pages/ImportsPage'
+import { AuthPage } from './components/AuthPage'
+import { Loader } from './components/Common'
 
 const NAV = [
   ['tickets', 'Билеты'],
   ['visual', 'Визуализация'],
   ['references', 'Справочники'],
+  ['imports', 'Импорт'],
   ['special', 'Спецоперации'],
 ]
 
@@ -16,8 +20,17 @@ export default function App() {
   const [page, setPage] = useState('tickets')
   const [syncVersion, setSyncVersion] = useState(0)
   const [notice, setNotice] = useState('')
+  const [user, setUser] = useState(undefined)
 
   useEffect(() => {
+    api.auth
+      .me()
+      .then(setUser)
+      .catch(() => setUser(null))
+  }, [])
+
+  useEffect(() => {
+    if (!user) return undefined
     let socket, retry
     let stopped = false
     const connect = () => {
@@ -39,7 +52,7 @@ export default function App() {
       window.clearTimeout(retry)
       socket?.close()
     }
-  }, [])
+  }, [user])
 
   useEffect(() => {
     if (!notice) return undefined
@@ -51,6 +64,17 @@ export default function App() {
     setSyncVersion((value) => value + 1)
     setNotice(message)
   }
+
+  const logout = async () => {
+    try {
+      await api.auth.logout()
+    } finally {
+      setUser(null)
+    }
+  }
+
+  if (user === undefined) return <Loader />
+  if (user === null) return <AuthPage onAuthenticated={setUser} />
 
   return (
     <div className="app-shell">
@@ -70,11 +94,19 @@ export default function App() {
             </button>
           ))}
         </nav>
+        <div className="current-user">
+          <div>
+            <strong>{user.username}</strong>
+            <span>{user.role === 'ADMIN' ? 'Администратор' : 'Пользователь'}</span>
+          </div>
+          <button onClick={logout}>Выйти</button>
+        </div>
       </aside>
       <main>
         {page === 'tickets' && <TicketsPage version={syncVersion} onChanged={changed} />}
         {page === 'visual' && <VisualizationPage version={syncVersion} onChanged={changed} />}
         {page === 'references' && <ReferencesPage version={syncVersion} onChanged={changed} />}
+        {page === 'imports' && <ImportsPage version={syncVersion} onChanged={changed} />}
         {page === 'special' && <SpecialPage version={syncVersion} onChanged={changed} />}
       </main>
       {notice && <div className="toast">{notice}</div>}

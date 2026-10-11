@@ -26,6 +26,12 @@ public class ApiMapper {
                 venue(v.getVenue()));
     }
 
+    public ImportOperationDto importOperation(ImportOperation operation) {
+        return new ImportOperationDto(operation.getId(), operation.getStatus(), operation.getUsername(),
+                operation.getFileName(), operation.getCreatedAt(), operation.getCompletedAt(),
+                operation.getImportedCount(), operation.getErrorMessage());
+    }
+
     public TicketCommand command(TicketRequest v) {
         return new TicketCommand(v.name(), new CoordinatesCommand(v.coordinates().x(), v.coordinates().y()),
                 v.personId(), v.eventId(), v.price(), v.type(), v.discount(), v.number(), v.venueId());

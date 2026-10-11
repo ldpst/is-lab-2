@@ -33,12 +33,10 @@ public class Person {
     @Column(nullable = false)
     private Integer weight;
 
-    @NotNull
     @Size(max = 26)
     @Column(name = "passport_id", length = 26)
     private String passportID;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     private Country nationality;
 

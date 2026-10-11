@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
 
 import com.ldpst.controller.websocket.DataChangedEvent;
 import com.ldpst.model.domain.*;
@@ -20,6 +21,7 @@ import com.ldpst.repository.TicketRepository;
 import com.ldpst.repository.VenuesRepository;
 import com.ldpst.service.specification.TicketSpecification;
 import com.ldpst.service.util.NotFoundException;
+import com.ldpst.service.util.BusinessRuleException;
 
 
 import com.ldpst.model.dto.Command.PageResult;
@@ -77,8 +79,9 @@ public class TicketService {
         return ticketRepository.findById(id).orElseThrow(() -> new NotFoundException("Билет не найден"));
     }
 
-    @Transactional 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public Ticket create(TicketCommand c) {
+        checkUniqueNumber(null, c.eventId(), c.number());
         Ticket t = new Ticket();
         apply(t, c);
 
@@ -87,9 +90,10 @@ public class TicketService {
         return managed;
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public Ticket update(int id, TicketCommand c) {
         Ticket ticket = get(id);
+        checkUniqueNumber(id, c.eventId(), c.number());
         apply(ticket, c);
         Ticket managed = ticketRepository.save(ticket);
         registerChange("ticket-updated");
@@ -125,6 +129,21 @@ public class TicketService {
         t.setPerson(person);
         t.setEvent(event);
         t.setVenue(venue);
+    }
+
+    private void checkUniqueNumber(Integer ticketId, Long eventId, Integer number) {
+        if (number == null) {
+            return;
+        }
+
+        boolean exists = ticketId == null
+                ? ticketRepository.existsByEventIdAndNumber(eventId, number)
+                : ticketRepository.existsByEventIdAndNumberAndIdNot(eventId, number, ticketId);
+
+        if (exists) {
+            throw new BusinessRuleException(
+                    "Билет с номером " + number + " уже существует для выбранного события");
+        }
     }
 
     public void registerChange(String msg) {

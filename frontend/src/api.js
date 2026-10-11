@@ -10,13 +10,38 @@ export class ApiError extends Error {
   }
 }
 
-async function request(path, options = {}) {
+let csrf = null
+
+async function loadCsrf() {
+  const response = await fetch(`${API_ROOT}/auth/csrf`, { credentials: 'same-origin' })
+  if (!response.ok) throw new ApiError('Не удалось получить CSRF-токен', response.status)
+  csrf = await response.json()
+  return csrf
+}
+
+async function request(path, options = {}, canRetryCsrf = true) {
+  const method = options.method || 'GET'
+  const changesData = !['GET', 'HEAD', 'OPTIONS'].includes(method)
+  const headers = { ...options.headers }
+
+  if (options.body && !(options.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json'
+  }
+  if (changesData) {
+    const token = csrf || (await loadCsrf())
+    headers[token.headerName] = token.token
+  }
+
   const response = await fetch(`${API_ROOT}${path}`, {
-    headers: options.body
-      ? { 'Content-Type': 'application/json', ...options.headers }
-      : options.headers,
     ...options,
+    headers,
+    credentials: 'same-origin',
   })
+
+  if (response.status === 403 && changesData && canRetryCsrf) {
+    csrf = null
+    return request(path, options, false)
+  }
 
   if (!response.ok) {
     let body = null
@@ -43,6 +68,38 @@ export const api = {
   post: (path, body) => request(path, { method: 'POST', body: JSON.stringify(body) }),
   put: (path, body) => request(path, { method: 'PUT', body: JSON.stringify(body) }),
   delete: (path) => request(path, { method: 'DELETE' }),
+  upload: (path, formData) =>
+    request(path, {
+      method: 'POST',
+      body: formData,
+    }),
+  auth: {
+    me: () => request('/auth/me'),
+    register: (username, password) =>
+      request('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ username, password }),
+      }),
+    login: async (username, password) => {
+      const body = new URLSearchParams({ username, password })
+      const result = await request('/auth/login', {
+        method: 'POST',
+        body,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      })
+      csrf = null
+      return result
+    },
+    logout: async () => {
+      const result = await request('/auth/logout', { method: 'POST' })
+      csrf = null
+      return result
+    },
+  },
+}
+
+export function apiUrl(path) {
+  return `${API_ROOT}${path}`
 }
 
 export function ticketsQuery(params) {

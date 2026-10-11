@@ -11,7 +11,20 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': 'http://localhost:8080/is-lab-1',
+      '/api': {
+        target: 'http://localhost:8080/is-lab-1',
+        changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('proxyRes', (response) => {
+            const cookies = response.headers['set-cookie']
+            if (cookies) {
+              response.headers['set-cookie'] = cookies.map((cookie) =>
+                cookie.replace('Path=/is-lab-1', 'Path=/'),
+              )
+            }
+          })
+        },
+      },
       '/updates': {
         target: 'ws://localhost:8080/is-lab-1',
         ws: true,

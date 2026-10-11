@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION islab1.delete_tickets_by_venue(
+CREATE OR REPLACE FUNCTION "is-lab-2".delete_tickets_by_venue(
     p_venue_id BIGINT
 )
 RETURNS BIGINT
@@ -7,7 +7,7 @@ AS $$
 DECLARE
     affected BIGINT;
 BEGIN
-    DELETE FROM islab1.tickets
+    DELETE FROM "is-lab-2".tickets
     WHERE venue_id = p_venue_id;
 
     GET DIAGNOSTICS affected = ROW_COUNT;
@@ -17,7 +17,7 @@ END;
 $$;
 
 
-CREATE OR REPLACE FUNCTION islab1.count_tickets_by_venue_capacity_greater(
+CREATE OR REPLACE FUNCTION "is-lab-2".count_tickets_by_venue_capacity_greater(
     p_capacity BIGINT
 )
 RETURNS BIGINT
@@ -28,8 +28,8 @@ DECLARE
 BEGIN
     SELECT COUNT(*)
     INTO affected
-    FROM islab1.tickets t
-    JOIN islab1.venues v ON v.id = t.venue_id
+    FROM "is-lab-2".tickets t
+    JOIN "is-lab-2".venues v ON v.id = t.venue_id
     WHERE v.capacity > p_capacity;
 
     RETURN affected;
@@ -37,7 +37,7 @@ END;
 $$;
 
 
-CREATE OR REPLACE FUNCTION islab1.unique_ticket_venues()
+CREATE OR REPLACE FUNCTION "is-lab-2".unique_ticket_venues()
 RETURNS TABLE (
     id BIGINT,
     name VARCHAR(255),
@@ -51,10 +51,10 @@ AS $$
 BEGIN
     RETURN QUERY
         SELECT v.id, v.name, v.capacity, v.address_street, v.address_zip_code
-        FROM islab1.venues v
+        FROM "is-lab-2".venues v
         WHERE EXISTS (
             SELECT 1
-            FROM islab1.tickets t
+            FROM "is-lab-2".tickets t
             WHERE t.venue_id = v.id
         )
         ORDER BY v.id;
@@ -62,7 +62,7 @@ END;
 $$;
 
 
-CREATE OR REPLACE FUNCTION islab1.cancel_event(
+CREATE OR REPLACE FUNCTION "is-lab-2".cancel_event(
     p_event_id BIGINT
 )
 RETURNS BIGINT
@@ -71,7 +71,7 @@ AS $$
 DECLARE
     affected BIGINT;
 BEGIN
-    DELETE FROM islab1.tickets
+    DELETE FROM "is-lab-2".tickets
     WHERE event_id = p_event_id;
 
     GET DIAGNOSTICS affected = ROW_COUNT;
@@ -81,7 +81,7 @@ END;
 $$;
 
 
-CREATE OR REPLACE FUNCTION islab1.delete_tickets_by_person(
+CREATE OR REPLACE FUNCTION "is-lab-2".delete_tickets_by_person(
     p_person_id BIGINT
 )
 RETURNS BIGINT
@@ -90,7 +90,7 @@ AS $$
 DECLARE
     affected BIGINT;
 BEGIN
-    DELETE FROM islab1.tickets
+    DELETE FROM "is-lab-2".tickets
     WHERE person_id = p_person_id;
 
     GET DIAGNOSTICS affected = ROW_COUNT;

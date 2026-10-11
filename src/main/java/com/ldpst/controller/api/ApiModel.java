@@ -40,6 +40,12 @@ public final class ApiModel {
     public record DeleteResultDto(long deletedCount) {}
 
     public record CountResultDto(long count) {}
+
+    public record ImportOperationDto(Long id, ImportStatus status, String username, String fileName,
+                                     Instant createdAt, Instant completedAt, Integer importedCount,
+                                     String errorMessage) {}
+
+    public record ImportResultDto(long operationId) {}
     
     public record ApiError(String message, List<String> details) {}
 }
