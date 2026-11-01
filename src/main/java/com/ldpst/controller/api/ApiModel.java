@@ -27,13 +27,13 @@ public final class ApiModel {
                             Instant creationDate, @Valid @NotNull PersonDto person, @Valid @NotNull EventDto event,
                             @Positive float price, @NotNull TicketType type,
                             @Positive @DecimalMax("100") Float discount, @Positive Integer number,
-                            @Valid @NotNull VenueDto venue) {}
+                            @Valid @NotNull VenueDto venue, long version) {}
 
     public record TicketRequest(@NotBlank String name, @Valid @NotNull CoordinatesDto coordinates,
                                 @NotNull @Positive Long personId, @NotNull @Positive Long eventId,
                                 @Positive float price, @NotNull TicketType type,
                                 @Positive @DecimalMax("100") Float discount, @Positive Integer number,
-                                @NotNull @Positive Long venueId) {}
+                                @NotNull @Positive Long venueId, @PositiveOrZero Long version) {}
 
     public record PageDto<T>(List<T> items, long totalItems, int totalPages, int page, int size) {}
 

@@ -69,6 +69,7 @@ export function TicketDialog({ mode, ticket, onClose, onSaved }) {
       discount: form.discount === '' ? null : Number(form.discount),
       number: form.number === '' ? null : Number(form.number),
       venueId: Number(form.venueId),
+      version: mode === 'create' ? null : ticket.version,
     }
     try {
       if (mode === 'create') await api.post('/tickets', payload)

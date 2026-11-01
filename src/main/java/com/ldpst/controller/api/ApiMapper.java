@@ -23,7 +23,7 @@ public class ApiMapper {
     public TicketDto ticket(Ticket v) {
         return new TicketDto(v.getId(), v.getName(), coordinates(v.getCoordinates()), v.getCreationDate(),
                 person(v.getPerson()), event(v.getEvent()), v.getPrice(), v.getType(), v.getDiscount(), v.getNumber(),
-                venue(v.getVenue()));
+                venue(v.getVenue()), v.getVersion());
     }
 
     public ImportOperationDto importOperation(ImportOperation operation) {

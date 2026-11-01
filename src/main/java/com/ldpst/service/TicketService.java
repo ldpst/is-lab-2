@@ -91,8 +91,9 @@ public class TicketService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Ticket update(int id, TicketCommand c) {
+    public Ticket update(int id, TicketCommand c, Long version) {
         Ticket ticket = get(id);
+        checkVersion(ticket, version);
         checkUniqueNumber(id, c.eventId(), c.number());
         apply(ticket, c);
         Ticket managed = ticketRepository.save(ticket);
@@ -101,10 +102,18 @@ public class TicketService {
     }
 
     @Transactional 
-    public void delete(int id) {
+    public void delete(int id, long version) {
         Ticket ticket = get(id);
+        checkVersion(ticket, version);
         ticketRepository.delete(ticket);
         registerChange("ticket-deleted");
+    }
+
+    private void checkVersion(Ticket ticket, Long version) {
+        if (version == null || ticket.getVersion() != version) {
+            throw new BusinessRuleException(
+                    "Билет уже изменён другим пользователем. Обновите данные и повторите операцию.");
+        }
     }
 
     private void apply(Ticket t, TicketCommand c) {

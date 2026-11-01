@@ -41,7 +41,7 @@ export function TicketsPage({ version, onChanged }) {
     }))
   const remove = async () => {
     try {
-      await api.delete(`/tickets/${confirmDelete.id}`)
+      await api.delete(`/tickets/${confirmDelete.id}?version=${confirmDelete.version}`)
       setConfirmDelete(null)
       onChanged('Билет удалён')
     } catch (error) {

@@ -23,7 +23,7 @@ export function VisualizationPage({ version, onChanged }) {
 
   const remove = async () => {
     try {
-      await api.delete(`/tickets/${confirmDelete.id}`)
+      await api.delete(`/tickets/${confirmDelete.id}?version=${confirmDelete.version}`)
       setConfirmDelete(null)
       setSelected(null)
       onChanged('Билет удалён из базы данных')

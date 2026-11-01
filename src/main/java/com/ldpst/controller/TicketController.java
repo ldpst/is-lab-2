@@ -66,14 +66,14 @@ public class TicketController {
     @PutMapping("/{id}")
     public TicketDto update(@PathVariable int id, @Valid @RequestBody TicketRequest body) {
         TicketCommand command = mapper.command(body);
-        Ticket ticket = ticketService.update(id, command);
+        Ticket ticket = ticketService.update(id, command, body.version());
         TicketDto ticketDto = mapper.ticket(ticket);
         return ticketDto;
     }
     
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable int id) {
-        ticketService.delete(id);
+    public void delete(@PathVariable int id, @RequestParam @Min(0) long version) {
+        ticketService.delete(id, version);
     }
 }

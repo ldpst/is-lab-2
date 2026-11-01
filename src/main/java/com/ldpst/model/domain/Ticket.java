@@ -14,6 +14,14 @@ public class Ticket {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Version
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private long version;
+
+    public long getVersion() {
+        return version;
+    }
+
     @NotBlank
     @Column(nullable = false)
     private String name;

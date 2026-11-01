@@ -3,6 +3,7 @@ package com.ldpst.controller;
 import java.util.List;
 
 import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.CannotCreateTransactionException;
@@ -40,5 +41,11 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiError> concurrentChange(RuntimeException exception) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new ApiError("Данные одновременно изменил другой пользователь. Повторите операцию.", List.of()));
+    }
+
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ApiError> concurrentObjectChange(OptimisticLockingFailureException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiError("Объект уже изменён или удалён другим пользователем.", List.of()));
     }
 }

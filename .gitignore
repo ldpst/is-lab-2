@@ -6,3 +6,7 @@ out/
 wildfly-*/
 wildfly-*.zip
 frontend/node_modules/
+jmeter/*
+!jmeter\lab2-isolation.jmx
+.planning
+jmeter.log
