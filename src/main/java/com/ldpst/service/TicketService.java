@@ -82,6 +82,7 @@ public class TicketService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public Ticket create(TicketCommand c) {
         checkUniqueNumber(null, c.eventId(), c.number());
+        checkUniqueVip(null, c);
         Ticket t = new Ticket();
         apply(t, c);
 
@@ -95,6 +96,7 @@ public class TicketService {
         Ticket ticket = get(id);
         checkVersion(ticket, version);
         checkUniqueNumber(id, c.eventId(), c.number());
+        checkUniqueVip(id, c);
         apply(ticket, c);
         Ticket managed = ticketRepository.save(ticket);
         registerChange("ticket-updated");
@@ -138,6 +140,20 @@ public class TicketService {
         t.setPerson(person);
         t.setEvent(event);
         t.setVenue(venue);
+    }
+
+    private void checkUniqueVip(Integer ticketId, TicketCommand command) {
+        if (command.type() != TicketType.VIP) {
+            return;
+        }
+
+        boolean exists = ticketId == null
+                ? ticketRepository.existsByPersonIdAndEventIdAndType(command.personId(), command.eventId(), TicketType.VIP)
+                : ticketRepository.existsByPersonIdAndEventIdAndTypeAndIdNot(
+                        command.personId(), command.eventId(), TicketType.VIP, ticketId);
+        if (exists) {
+            throw new BusinessRuleException("У этого человека уже есть VIP-билет на выбранное событие");
+        }
     }
 
     private void checkUniqueNumber(Integer ticketId, Long eventId, Integer number) {

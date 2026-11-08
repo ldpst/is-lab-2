@@ -12,6 +12,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.ldpst.model.domain.Address;
 import com.ldpst.model.domain.Event;
 import com.ldpst.model.domain.Venue;
 import com.ldpst.model.dto.Command.AddressCommand;
@@ -74,6 +75,23 @@ class ImportedReferenceServiceTest {
 
         assertThat(service.resolveVenue(imported)).isSameAs(created);
         verify(venueService).save(null, imported);
+    }
+
+    @Test
+    void reusesVenueWhenOnlyAddressFormattingDiffers() {
+        Address address = new Address();
+        address.setStreet("Улица Ленина 10");
+        address.setZipCode("AB12345");
+        Venue venue = new Venue();
+        venue.setName("Арена");
+        venue.setCapacity(100);
+        venue.setAddress(address);
+        VenueCommand imported = new VenueCommand("Арена", 100,
+                new AddressCommand("  улица   ЛЕНИНА 10 ", "ab12345"));
+        when(venueRepository.findAllByNameIgnoreCase("Арена")).thenReturn(List.of(venue));
+
+        assertThat(service.resolveVenue(imported)).isSameAs(venue);
+        verify(venueService, never()).save(null, imported);
     }
 
     private Event event(String name, int minAge, String description) {

@@ -17,6 +17,7 @@ import com.ldpst.repository.VenuesRepository;
 import com.ldpst.service.EventService;
 import com.ldpst.service.PersonService;
 import com.ldpst.service.VenueService;
+import com.ldpst.service.util.AddressComparison;
 import com.ldpst.service.util.BusinessRuleException;
 
 @Service
@@ -123,16 +124,11 @@ public class ImportedReferenceService {
     private boolean sameVenue(Venue venue, VenueCommand command) {
         return venue.getName().trim().equalsIgnoreCase(command.name().trim())
                 && venue.getCapacity() == command.capacity()
-                && sameOptionalText(venue.getAddress().getStreet(), command.address().street())
-                && sameText(venue.getAddress().getZipCode(), command.address().zipCode());
+                && AddressComparison.matches(venue.getAddress(), command.address());
     }
 
     private boolean sameText(String first, String second) {
         return Objects.equals(first.trim(), second.trim());
-    }
-
-    private boolean sameOptionalText(String first, String second) {
-        return Objects.equals(normalized(first), normalized(second));
     }
 
     private boolean sameOptionalIgnoreCase(String first, String second) {
